@@ -45,7 +45,7 @@ public class CreditServiceImpl implements CreditService {
                     c.setCreditCard(credit.getCreditCard());
                     c.setCardNumber(credit.getCardNumber());
                     c.setCreditLineAmount(credit.getCreditLineAmount());
-                    return creditRepository.save(credit);
+                    return creditRepository.save(c);
                 });
     }
 
