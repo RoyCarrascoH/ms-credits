@@ -20,10 +20,10 @@ public class CreditServiceImpl implements CreditService {
     }
 
     @Override
-    public Mono<Credit> findById(String idCredito) {
-        return Mono.just(idCredito)
+    public Mono<Credit> findById(String idCredit) {
+        return Mono.just(idCredit)
                 .flatMap(creditRepository::findById)
-                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Credito", "IdCredito", idCredito)));
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Credito", "IdCredito", idCredit)));
     }
 
     @Override
@@ -36,15 +36,13 @@ public class CreditServiceImpl implements CreditService {
         return creditRepository.findById(idCredit)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Credit", "IdCredito", idCredit)))
                 .flatMap(c -> {
+                    c.setIdClient(credit.getIdClient());
                     c.setCreditNumber(credit.getCreditNumber());
                     c.setCreditType(credit.getCreditType());
-                    c.setAmountCredit(credit.getAmountCredit());
-                    c.setCurrency(credit.getCurrency());
-                    c.setMaximumCreditQuantity(credit.getMaximumCreditQuantity());
-                    c.setNumberQuotas(credit.getNumberQuotas());
-                    c.setCreditCard(credit.getCreditCard());
-                    c.setCardNumber(credit.getCardNumber());
                     c.setCreditLineAmount(credit.getCreditLineAmount());
+                    c.setCurrency(credit.getCurrency());
+                    c.setCreditAvailable(credit.getCreditAvailable());
+                    c.setStatus(credit.getStatus());
                     return creditRepository.save(c);
                 });
     }
