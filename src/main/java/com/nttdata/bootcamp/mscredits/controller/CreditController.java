@@ -1,10 +1,13 @@
 package com.nttdata.bootcamp.mscredits.controller;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.Date;
 import java.util.HashMap;
 import javax.validation.Valid;
+import com.nttdata.bootcamp.mscredits.dto.CreditDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -15,6 +18,7 @@ import com.nttdata.bootcamp.mscredits.application.CreditService;
 import com.nttdata.bootcamp.mscredits.model.Credit;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/credits")
 public class CreditController {
@@ -33,9 +37,9 @@ public class CreditController {
     }
 
     @PostMapping
-    public Mono<ResponseEntity<Map<String, Object>>> saveCredit(@Valid @RequestBody Mono<Credit> monoCredit) {
+    public Mono<ResponseEntity<Map<String, Object>>> saveCredit(@Valid @RequestBody Mono<CreditDto> monoCreditDto) {
         Map<String, Object> request = new HashMap<>();
-        return monoCredit.flatMap(credit -> {
+        return monoCreditDto.flatMap(credit -> {
             return service.save(credit).map(c -> {
                 request.put("Credito", c);
                 request.put("mensaje", "Credito guardado con exito");
@@ -47,8 +51,8 @@ public class CreditController {
     }
 
     @PutMapping("/{idCredit}")
-    public Mono<ResponseEntity<Credit>> editCredit(@Valid @RequestBody Credit credit, @PathVariable("idCredit") String idCredit) {
-        return service.update(credit, idCredit)
+    public Mono<ResponseEntity<Credit>> editCredit(@Valid @RequestBody CreditDto creditDto, @PathVariable("idCredit") String idCredit) {
+        return service.update(creditDto, idCredit)
                 .map(c -> ResponseEntity.created(URI.create("/api/credits/".concat(idCredit)))
                         .contentType(MediaType.APPLICATION_JSON_UTF8).body(c));
     }
@@ -56,6 +60,24 @@ public class CreditController {
     @DeleteMapping("/{idCredit}")
     public Mono<ResponseEntity<Void>> deleteCredit(@PathVariable("idCredit") String idCredit) {
         return service.delete(idCredit).then(Mono.just(new ResponseEntity<Void>(HttpStatus.NO_CONTENT)));
+    }
+
+    @GetMapping("creditCard/{documentNumber}")
+    public Mono<ResponseEntity<List<Credit>>> getCreditCardBalanceByDocumentNumber(@PathVariable("documentNumber") String documentNumber) {
+        return service.findByDocumentNumber(documentNumber)
+                .flatMap( mm ->{
+                    log.info("--getCreditCardBalanceByDocumentNumber-------: " + mm.toString());
+                    return Mono.just(mm);
+                })
+                .collectList()
+                .map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(c))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("creditNumber/{creditNumber}")
+    public Mono<ResponseEntity<Credit>> viewCreditNumberDetails(@PathVariable("creditNumber") String creditNumber) {
+        return service.findByCreditNumber(creditNumber).map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(c))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
 }
