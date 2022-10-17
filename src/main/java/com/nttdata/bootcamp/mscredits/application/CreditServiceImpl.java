@@ -89,7 +89,7 @@ public class CreditServiceImpl implements CreditService {
 
     public Mono<Client> findClientByDni(String documentNumber) {
         WebClientConfig webconfig = new WebClientConfig();
-        return webconfig.setUriData("http://localhost:8082/").flatMap(
+        return webconfig.setUriData("http://localhost:8080/").flatMap(
                 d -> {
                     return webconfig.getWebclient().get().uri("/api/clients/documentNumber/" + documentNumber).retrieve().bodyToMono(Client.class);
                 }
