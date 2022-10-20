@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Date;
 import java.util.HashMap;
 import javax.validation.Valid;
+
 import com.nttdata.bootcamp.mscredits.dto.CreditDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -65,7 +66,7 @@ public class CreditController {
     @GetMapping("creditCard/{documentNumber}")
     public Mono<ResponseEntity<List<Credit>>> getCreditCardBalanceByDocumentNumber(@PathVariable("documentNumber") String documentNumber) {
         return service.findByDocumentNumber(documentNumber)
-                .flatMap( mm ->{
+                .flatMap(mm -> {
                     log.info("--getCreditCardBalanceByDocumentNumber-------: " + mm.toString());
                     return Mono.just(mm);
                 })
@@ -77,6 +78,15 @@ public class CreditController {
     @GetMapping("creditNumber/{creditNumber}")
     public Mono<ResponseEntity<Credit>> viewCreditNumberDetails(@PathVariable("creditNumber") String creditNumber) {
         return service.findByCreditNumber(creditNumber).map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(c))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+
+
+    }
+
+    @GetMapping("movements/documentNumber/{documentNumber}")
+    public Mono<ResponseEntity<CreditDto>> getMovementsOfCreditByDocumentNumber(@PathVariable("documentNumber") String documentNumber) {
+        return service.findMovementsByDocumentNumber(documentNumber)
+                .map(c -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(c))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 

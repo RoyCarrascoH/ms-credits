@@ -137,4 +137,37 @@ public class CreditServiceImpl implements CreditService {
         );
     }
 
+    @Override
+    public Mono<CreditDto> findMovementsByDocumentNumber(String documentNumber) {
+        log.info("Inicio----findMovementsByDocumentNumber-------: ");
+        log.info("Inicio----findMovementsByDocumentNumber-------documentNumber : " + documentNumber);
+        return creditRepository.findByDocumentNumber(documentNumber)
+                .flatMap(d -> {
+                    log.info("Inicio----findMovementsByCreditNumber-------: ");
+                    return findMovementsByCreditNumber(d.getCreditNumber().toString())
+                            .collectList()
+                            .flatMap(m -> {
+                                log.info("----findMovementsByCreditNumber setMovements-------: ");
+                                d.setMovements(m);
+                                return Mono.just(d);
+                            });
+                });
+    }
+
+    public Flux<Movement> findMovementsByCreditNumber(String creditNumber) {
+
+        log.info("Inicio----findMovementsByCreditNumber-------: ");
+        WebClientConfig webconfig = new WebClientConfig();
+        Flux<Movement> alerts = webconfig.setUriData("http://localhost:8083/")
+                .flatMap(d -> {
+                    return webconfig.getWebclient().get()
+                            .uri("/api/movements/client/creditNumber/" + creditNumber)
+                            .retrieve()
+                            .bodyToFlux(Movement.class)
+                            .collectList();
+                })
+                .flatMapMany(iterable -> Flux.fromIterable(iterable));
+        return alerts;
+    }
+
 }

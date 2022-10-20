@@ -6,8 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Builder;
 import org.springframework.data.annotation.Id;
-
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -24,8 +23,9 @@ public class Movement {
     private Double amount;
     private Double balance;
     private String currency;
-    private Date movementDate;
+    private LocalDateTime movementDate;
     private Credit credit;
+    private String idBankAccount;
+    private Loan loan;
 
 }
-

@@ -3,15 +3,16 @@ package com.nttdata.bootcamp.mscredits.dto;
 import com.nttdata.bootcamp.mscredits.exception.ResourceNotFoundException;
 import com.nttdata.bootcamp.mscredits.model.Client;
 import com.nttdata.bootcamp.mscredits.model.Credit;
+import com.nttdata.bootcamp.mscredits.model.Movement;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
-
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Getter
 @Setter
@@ -39,6 +40,8 @@ public class CreditDto {
     private Boolean status;
 
     private Double balance;
+
+    private List<Movement> movements;
 
     public Mono<Boolean> validateFields() {
         log.info("validateFields-------: ");
