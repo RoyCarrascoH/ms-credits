@@ -2,6 +2,8 @@ package com.nttdata.bootcamp.mscredits.application;
 
 import com.nttdata.bootcamp.mscredits.config.WebClientConfig;
 import com.nttdata.bootcamp.mscredits.dto.CreditDto;
+import com.nttdata.bootcamp.mscredits.infrastructure.ClientRepository;
+import com.nttdata.bootcamp.mscredits.infrastructure.MovementRepository;
 import com.nttdata.bootcamp.mscredits.model.Client;
 import com.nttdata.bootcamp.mscredits.model.Movement;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,10 @@ public class CreditServiceImpl implements CreditService {
 
     @Autowired
     private CreditRepository creditRepository;
+    @Autowired
+    private ClientRepository clientRepository;
+    @Autowired
+    private MovementRepository movementRepository;
 
     @Override
     public Flux<Credit> findAll() {
@@ -34,7 +40,7 @@ public class CreditServiceImpl implements CreditService {
 
     @Override
     public Mono<Credit> save(CreditDto creditDto) {
-        return findClientByDni(String.valueOf(creditDto.getDocumentNumber()))
+        return clientRepository.findClientByDni(String.valueOf(creditDto.getDocumentNumber()))
                 .flatMap(client -> {
                     return creditDto.validateFields()
                             .flatMap(at -> {
@@ -55,7 +61,7 @@ public class CreditServiceImpl implements CreditService {
     @Override
     public Mono<Credit> update(CreditDto creditDto, String idCredit) {
 
-        return findClientByDni(String.valueOf(creditDto.getDocumentNumber()))
+        return clientRepository.findClientByDni(String.valueOf(creditDto.getDocumentNumber()))
                 .flatMap(client -> {
                     return creditDto.validateFields()
                             .flatMap(at -> {
@@ -87,14 +93,7 @@ public class CreditServiceImpl implements CreditService {
                 .flatMap(creditRepository::delete);
     }
 
-    public Mono<Client> findClientByDni(String documentNumber) {
-        WebClientConfig webconfig = new WebClientConfig();
-        return webconfig.setUriData("http://localhost:8080/").flatMap(
-                d -> {
-                    return webconfig.getWebclient().get().uri("/api/clients/documentNumber/" + documentNumber).retrieve().bodyToMono(Client.class);
-                }
-        );
-    }
+
 
     @Override
     public Flux<Credit> findByDocumentNumber(String documentNumber) {
@@ -104,7 +103,7 @@ public class CreditServiceImpl implements CreditService {
         return creditRepository.findByCreditClient(documentNumber)
                 .flatMap(credit -> {
                     log.info("Inicio----findByCreditClient-------: ");
-                    return findLastMovementByCreditNumber(credit.getCreditNumber())
+                    return movementRepository.findLastMovementByCreditNumber(credit.getCreditNumber())
                             .switchIfEmpty(Mono.defer(() -> {
                                 log.info("----2 switchIfEmpty-------: ");
                                 Movement mv = Movement.builder()
@@ -127,15 +126,7 @@ public class CreditServiceImpl implements CreditService {
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Credito", "creditNumber", creditNumber)));
     }
 
-    public Mono<Movement> findLastMovementByCreditNumber(Integer creditNumber) {
-        log.info("Inicio----findLastMovementByMovementNumber-------: ");
-        WebClientConfig webconfig = new WebClientConfig();
-        return webconfig.setUriData("http://localhost:8083/").flatMap(
-                d -> {
-                    return webconfig.getWebclient().get().uri("/api/movements/creditNumber/" + creditNumber).retrieve().bodyToMono(Movement.class);
-                }
-        );
-    }
+
 
     @Override
     public Mono<CreditDto> findMovementsByDocumentNumber(String documentNumber) {
@@ -144,7 +135,7 @@ public class CreditServiceImpl implements CreditService {
         return creditRepository.findByDocumentNumber(documentNumber)
                 .flatMap(d -> {
                     log.info("Inicio----findMovementsByCreditNumber-------: ");
-                    return findMovementsByCreditNumber(d.getCreditNumber().toString())
+                    return movementRepository.findMovementsByCreditNumber(d.getCreditNumber().toString())
                             .collectList()
                             .flatMap(m -> {
                                 log.info("----findMovementsByCreditNumber setMovements-------: ");
@@ -154,20 +145,5 @@ public class CreditServiceImpl implements CreditService {
                 });
     }
 
-    public Flux<Movement> findMovementsByCreditNumber(String creditNumber) {
-
-        log.info("Inicio----findMovementsByCreditNumber-------: ");
-        WebClientConfig webconfig = new WebClientConfig();
-        Flux<Movement> alerts = webconfig.setUriData("http://localhost:8083/")
-                .flatMap(d -> {
-                    return webconfig.getWebclient().get()
-                            .uri("/api/movements/client/creditNumber/" + creditNumber)
-                            .retrieve()
-                            .bodyToFlux(Movement.class)
-                            .collectList();
-                })
-                .flatMapMany(iterable -> Flux.fromIterable(iterable));
-        return alerts;
-    }
 
 }
