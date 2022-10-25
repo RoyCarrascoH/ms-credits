@@ -7,12 +7,12 @@ spring:
     name: service-credits
   data:
     mongodb:
-      database: BankCreditsDB
-      auto-index-creation: true
       host: localhost
       port: 27017
+      database: BankCreditsDB
+      auto-index-creation: true
   config:
-    import: optional:configserver:http://localhost:8888
+    import: optional:configserver:http://ms-config-server:8888
 eureka:
   client:
     service-url:
