@@ -2,6 +2,13 @@ server:
   port: 8084
   error:
     include-message: always
+local:
+  property:
+    host:
+      ms-bank-account: localhost
+      ms-client: localhost
+      ms-movement: localhost
+      ms-loan: localhost
 spring:
   application:
     name: service-credits
