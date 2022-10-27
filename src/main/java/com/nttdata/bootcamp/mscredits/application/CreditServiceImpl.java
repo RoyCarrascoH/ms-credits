@@ -145,5 +145,11 @@ public class CreditServiceImpl implements CreditService {
                 });
     }
 
+    @Override
+    public Flux<Credit> findCreditByDocumentNumber(String documentNumber) {
+        log.info("Inicio----findCreditByDocumentNumber-------: ");
+        log.info("Inicio----findCreditByDocumentNumber-------documentNumber : " + documentNumber);
+        return creditRepository.findByCreditClient(documentNumber);
+    }
 
 }

@@ -90,4 +90,12 @@ public class CreditController {
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    //Buscar productos de tarjeta de credito por number de documento del cliente
+    @GetMapping("/creditsDetails/{documentNumber}")
+    public Mono<ResponseEntity<Flux<Credit>>> getViewCreditDetailsByDocumentNumber(@PathVariable("documentNumber") String documentNumber) {
+        return Mono.just(ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(service.findCreditByDocumentNumber(documentNumber)))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
 }
