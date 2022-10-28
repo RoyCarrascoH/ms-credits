@@ -1,10 +1,8 @@
 package com.nttdata.bootcamp.mscredits.application;
 
-import com.nttdata.bootcamp.mscredits.config.WebClientConfig;
 import com.nttdata.bootcamp.mscredits.dto.CreditDto;
 import com.nttdata.bootcamp.mscredits.infrastructure.ClientRepository;
 import com.nttdata.bootcamp.mscredits.infrastructure.MovementRepository;
-import com.nttdata.bootcamp.mscredits.model.Client;
 import com.nttdata.bootcamp.mscredits.model.Movement;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -93,8 +91,6 @@ public class CreditServiceImpl implements CreditService {
                 .flatMap(creditRepository::delete);
     }
 
-
-
     @Override
     public Flux<Credit> findByDocumentNumber(String documentNumber) {
 
@@ -125,8 +121,6 @@ public class CreditServiceImpl implements CreditService {
                 .flatMap(creditRepository::findByCreditNumber)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Credito", "creditNumber", creditNumber)));
     }
-
-
 
     @Override
     public Mono<CreditDto> findMovementsByDocumentNumber(String documentNumber) {
