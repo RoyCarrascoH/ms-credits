@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="5.6">
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\application\CreditService.java">
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\application\CreditServiceImpl.java">
+<error line="43" column="5" severity="error" message="Ocurrió una excepción - expecting EOF, found &apos;}&apos;" source="com.puppycrawl.tools.checkstyle.TreeWalker"/>
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\config\WebClientConfig.java">
+<error line="24" column="25" severity="error" message="Ocurrió una excepción - expecting EOF, found &apos;setUrl&apos;" source="com.puppycrawl.tools.checkstyle.TreeWalker"/>
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\controller\CreditController.java">
+<error line="38" column="5" severity="error" message="Ocurrió una excepción - expecting EOF, found &apos;}&apos;" source="com.puppycrawl.tools.checkstyle.TreeWalker"/>
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\dto\CreditDto.java">
+<error line="56" column="13" severity="error" message="Ocurrió una excepción - expecting EOF, found &apos;if&apos;" source="com.puppycrawl.tools.checkstyle.TreeWalker"/>
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\dto\ErrorDetail.java">
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\exception\BlogAppException.java">
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\exception\GlobalExceptionHandler.java">
+<error line="28" column="13" severity="error" message="Ocurrió una excepción - expecting EOF, found &apos;return&apos;" source="com.puppycrawl.tools.checkstyle.TreeWalker"/>
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\exception\ResourceNotFoundException.java">
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\infrastructure\ClientRepository.java">
+<error line="33" column="5" severity="error" message="Ocurrió una excepción - expecting EOF, found &apos;}&apos;" source="com.puppycrawl.tools.checkstyle.TreeWalker"/>
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\infrastructure\CreditRepository.java">
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\infrastructure\LoanRepository.java">
+<error line="41" column="9" severity="error" message="Ocurrió una excepción - expecting EOF, found &apos;return&apos;" source="com.puppycrawl.tools.checkstyle.TreeWalker"/>
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\infrastructure\MovementRepository.java">
+<error line="40" column="9" severity="error" message="Ocurrió una excepción - expecting EOF, found &apos;return&apos;" source="com.puppycrawl.tools.checkstyle.TreeWalker"/>
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\model\Client.java">
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\model\Credit.java">
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\model\Loan.java">
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\model\Movement.java">
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\MsCreditApplication.java">
+</file>
+<file name="C:\Informacion Empresarial\Repositorio GitHub\ms-credits\src\main\java\com\nttdata\bootcamp\mscredits\util\Constants.java">
+</file>
+</checkstyle>
