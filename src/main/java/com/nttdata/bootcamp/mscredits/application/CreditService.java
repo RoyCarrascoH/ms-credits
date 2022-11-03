@@ -22,4 +22,6 @@ public interface CreditService {
     public Mono<Credit> findByCreditNumber(String creditNumber);
 
     public Mono<CreditDto> findMovementsByDocumentNumber(String documentNumber);
+
+    public Flux<Credit> findCreditByDocumentNumber(String documentNumber);
 }

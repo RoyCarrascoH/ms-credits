@@ -1,9 +1,12 @@
 package com.nttdata.bootcamp.mscredits.application;
 
-import com.nttdata.bootcamp.mscredits.config.WebClientConfig;
 import com.nttdata.bootcamp.mscredits.dto.CreditDto;
+import com.nttdata.bootcamp.mscredits.infrastructure.ClientRepository;
+import com.nttdata.bootcamp.mscredits.infrastructure.LoanRepository;
+import com.nttdata.bootcamp.mscredits.infrastructure.MovementRepository;
 import com.nttdata.bootcamp.mscredits.model.Client;
 import com.nttdata.bootcamp.mscredits.model.Movement;
+import com.nttdata.bootcamp.mscredits.util.Constants;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -13,12 +16,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.nttdata.bootcamp.mscredits.infrastructure.CreditRepository;
 import com.nttdata.bootcamp.mscredits.exception.ResourceNotFoundException;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 public class CreditServiceImpl implements CreditService {
 
     @Autowired
     private CreditRepository creditRepository;
+    @Autowired
+    private ClientRepository clientRepository;
+    @Autowired
+    private MovementRepository movementRepository;
+
+    @Autowired
+    private LoanRepository loanRepository;
 
     @Override
     public Flux<Credit> findAll() {
@@ -34,9 +46,10 @@ public class CreditServiceImpl implements CreditService {
 
     @Override
     public Mono<Credit> save(CreditDto creditDto) {
-        return findClientByDni(String.valueOf(creditDto.getDocumentNumber()))
+        return clientRepository.findClientByDni(String.valueOf(creditDto.getDocumentNumber()))
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Cliente", "DocumentNumber", String.valueOf(creditDto.getDocumentNumber()))))
                 .flatMap(client -> {
-                    return creditDto.validateFields()
+                    return this.validateCreditType(creditDto, client)
                             .flatMap(at -> {
                                 if (at.equals(true)) {
                                     return creditDto.mapperToCredit(client)
@@ -55,7 +68,8 @@ public class CreditServiceImpl implements CreditService {
     @Override
     public Mono<Credit> update(CreditDto creditDto, String idCredit) {
 
-        return findClientByDni(String.valueOf(creditDto.getDocumentNumber()))
+        return clientRepository.findClientByDni(String.valueOf(creditDto.getDocumentNumber()))
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Cliente", "DocumentNumber", String.valueOf(creditDto.getDocumentNumber()))))
                 .flatMap(client -> {
                     return creditDto.validateFields()
                             .flatMap(at -> {
@@ -87,37 +101,10 @@ public class CreditServiceImpl implements CreditService {
                 .flatMap(creditRepository::delete);
     }
 
-    public Mono<Client> findClientByDni(String documentNumber) {
-        WebClientConfig webconfig = new WebClientConfig();
-        return webconfig.setUriData("http://localhost:8080/").flatMap(
-                d -> {
-                    return webconfig.getWebclient().get().uri("/api/clients/documentNumber/" + documentNumber).retrieve().bodyToMono(Client.class);
-                }
-        );
-    }
-
     @Override
     public Flux<Credit> findByDocumentNumber(String documentNumber) {
-
-        log.info("Inicio----findByDocumentNumber-------: ");
         log.info("Inicio----findByDocumentNumber-------documentNumber : " + documentNumber);
-        return creditRepository.findByCreditClient(documentNumber)
-                .flatMap(credit -> {
-                    log.info("Inicio----findByCreditClient-------: ");
-                    return findLastMovementByCreditNumber(credit.getCreditNumber())
-                            .switchIfEmpty(Mono.defer(() -> {
-                                log.info("----2 switchIfEmpty-------: ");
-                                Movement mv = Movement.builder()
-                                        .balance(credit.getCreditLineAmount())
-                                        .build();
-                                return Mono.just(mv);
-                            }))
-                            .flatMap(m -> {
-                                log.info("----findByDocumentNumber setBalance-------: ");
-                                credit.setBalance(m.getBalance());
-                                return Mono.just(credit);
-                            });
-                });
+        return creditRepository.findByCreditClient(documentNumber);
     }
 
     @Override
@@ -127,16 +114,6 @@ public class CreditServiceImpl implements CreditService {
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Credito", "creditNumber", creditNumber)));
     }
 
-    public Mono<Movement> findLastMovementByCreditNumber(Integer creditNumber) {
-        log.info("Inicio----findLastMovementByMovementNumber-------: ");
-        WebClientConfig webconfig = new WebClientConfig();
-        return webconfig.setUriData("http://localhost:8083/").flatMap(
-                d -> {
-                    return webconfig.getWebclient().get().uri("/api/movements/creditNumber/" + creditNumber).retrieve().bodyToMono(Movement.class);
-                }
-        );
-    }
-
     @Override
     public Mono<CreditDto> findMovementsByDocumentNumber(String documentNumber) {
         log.info("Inicio----findMovementsByDocumentNumber-------: ");
@@ -144,7 +121,7 @@ public class CreditServiceImpl implements CreditService {
         return creditRepository.findByDocumentNumber(documentNumber)
                 .flatMap(d -> {
                     log.info("Inicio----findMovementsByCreditNumber-------: ");
-                    return findMovementsByCreditNumber(d.getCreditNumber().toString())
+                    return movementRepository.findMovementsByCreditNumber(d.getCreditNumber().toString())
                             .collectList()
                             .flatMap(m -> {
                                 log.info("----findMovementsByCreditNumber setMovements-------: ");
@@ -154,20 +131,124 @@ public class CreditServiceImpl implements CreditService {
                 });
     }
 
-    public Flux<Movement> findMovementsByCreditNumber(String creditNumber) {
+    @Override
+    public Flux<Credit> findCreditByDocumentNumber(String documentNumber) {
+        log.info("Inicio----findCreditByDocumentNumber-------: ");
+        log.info("Inicio----findCreditByDocumentNumber-------documentNumber : " + documentNumber);
+        return creditRepository.findByCreditClient(documentNumber);
+    }
 
-        log.info("Inicio----findMovementsByCreditNumber-------: ");
-        WebClientConfig webconfig = new WebClientConfig();
-        Flux<Movement> alerts = webconfig.setUriData("http://localhost:8083/")
-                .flatMap(d -> {
-                    return webconfig.getWebclient().get()
-                            .uri("/api/movements/client/creditNumber/" + creditNumber)
-                            .retrieve()
-                            .bodyToFlux(Movement.class)
-                            .collectList();
-                })
-                .flatMapMany(iterable -> Flux.fromIterable(iterable));
-        return alerts;
+    //Validar CreditType
+    public Mono<Boolean> validateCreditType(CreditDto creditDto, Client client) {
+        log.info("Inicio validateCreditType-------creditDto: " + creditDto.toString());
+        log.info("Inicio validateCreditType-------client: " + client.toString());
+        return Mono.just(creditDto.getCreditType()).flatMap(ct -> {
+            //Boolean isOk = false;
+            if (creditDto.getCreditType().equalsIgnoreCase("Personal")) { //Tarjeta de credito personal.
+                return validateCreditDebt(client.getDocumentNumber(), "Personal").flatMap( vcd -> {
+                    if ((vcd).equals(true)) {
+                        log.info("if validateCreditDebt-------: " );
+                        return validateLoanDebt(client.getDocumentNumber(), "Personal");
+                    } else {
+                        log.info("else validateCreditDebt-------: " );
+                        return Mono.just(false);
+                    }
+                });            
+            } else if (creditDto.getCreditType().equalsIgnoreCase("Business")) { //Tarjeta de credito Empresarial.
+                return validateCreditDebt(client.getDocumentNumber(), "Business").flatMap( vcd -> {
+                    if (vcd.equals(true)) {
+                        return validateLoanDebt(client.getDocumentNumber(), "Business");
+                    } else {
+                        return Mono.just(false);
+                    }
+                });
+            } else {
+                log.info("Inicio validateCreditType-------else: ");
+                return Mono.error(new ResourceNotFoundException("Tarjeta de credito", "CreditType", creditDto.getCreditType()));
+            }
+            //log.info("Fin validateCreditType-------: ");
+            //return Mono.just(isOk);
+        });
+    }
+
+    //Si tiene deuda retorna false
+    public Mono<Boolean> validateCreditDebt(String documentNumber, String creditType) {
+
+        log.info("Inicio----validateCreditDebt-------: ");
+        log.info("Inicio----validateCreditDebt-------creditType: " + creditType);
+        log.info("Inicio----validateCreditDebt-------documentNumber : " + documentNumber);
+        LocalDateTime datetime = LocalDateTime.now();
+        return creditRepository.findByCreditClient(documentNumber)
+                .collectList()
+        		.doOnNext(x -> log.info("Inicio----findByCreditClient-------doOnNext: "))
+                .flatMap(l -> {
+                    log.info("Inicio----findByCreditClient-------libre: ");
+                    log.info("Inicio----validateCreditDebt-------l: " + (l == null ? "" : l.toString()));
+                    if (creditType.equals("Personal")) {
+                        log.info("Inicio----validateCreditDebt-------Personal: ");
+                        if (l.size() == Constants.ZERO || l == null) {
+                            log.info("Inicio----validateCreditDebt-------if1: ");
+                            return Mono.just(true);
+                        } else {
+                            log.info("Inicio----validateCreditDebt-------else1: ");
+                            if (datetime.isBefore(l.get(0).getExpirationDate())) {
+                                log.info("Inicio----validateCreditDebt-------if2: ");
+                                return Mono.just(true);//No se vence
+                            } else {
+                                log.info("Inicio----validateCreditDebt-------else2: ");
+                                return Mono.just(false);//Ya se vencio
+                            }
+                        }
+                    } else if (creditType.equals("Business")) {
+                        log.info("Inicio----validateCreditDebt-------Business: ");
+                        if (l == null) {
+                            return Mono.just(true);
+                        } else {
+                            if (datetime.isBefore(l.get(0).getExpirationDate())) {
+                                return Mono.just(true);//No se vence
+                            } else {
+                                return Mono.just(false);//Ya se vencio
+                            }
+                        }
+                    }else{
+                        log.info("Inicio----validateCreditDebt-------else0: ");
+                        return Mono.just(false);
+                    }
+                });
+    }
+
+    //Si tiene deuda return false sino true
+    public Mono<Boolean> validateLoanDebt(String documentNumber, String loanType) {
+
+        log.info("Inicio----validateLoanDebt-------: ");
+        log.info("Inicio----validateLoanDebt-------documentNumber : " + documentNumber);
+        LocalDateTime datetime = LocalDateTime.now();
+        return loanRepository.findLoansByDocumentNumber(documentNumber)
+                .collectList()
+                .flatMap(c -> {
+                    if (loanType.equals("Personal")) {
+                        if (c.size() == Constants.ZERO || c == null) {
+                            return Mono.just(true);
+                        } else {
+                            if (datetime.isBefore(c.get(0).getExpirationDate())) {
+                                return Mono.just(true);//No se vence
+                            } else {
+                                return Mono.just(false);//Ya se vencio
+                            }
+                        }
+                    } else if (loanType.equals("Business")) {
+                        if (c == null) {
+                            return Mono.just(true);
+                        } else {
+                            if (datetime.isBefore(c.get(0).getExpirationDate())) {
+                                return Mono.just(true);//No se vence
+                            } else {
+                                return Mono.just(false);//Ya se vencio
+                            }
+                        }
+                    }
+                    return Mono.just(true);
+                });
     }
 
 }
