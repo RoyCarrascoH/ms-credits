@@ -106,10 +106,10 @@ public class CreditServiceImpl implements CreditService {
     }
 
     @Override
-    public Mono<Credit> findByCreditNumber(String creditNumber) {
+    public Mono<Credit> findByCreditNumber(Integer creditNumber) {
         return Mono.just(creditNumber)
-                .flatMap(creditRepository::findByCreditNumber)
-                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Credito", "creditNumber", creditNumber)));
+                .flatMap(creditRepository::findCreditByCreditNumber)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Credito", "creditNumber", creditNumber.toString())));
     }
 
     @Override
