@@ -199,7 +199,7 @@ public class CreditServiceImpl implements CreditService {
                         }
                     } else if (creditType.equals("Business")) {
                         log.info("Inicio----validateCreditDebt-------Business: ");
-                        if (l == null) {
+                        if (l.size() == Constants.ZERO || l == null) {
                             return Mono.just(true);
                         } else {
                             if (datetime.isBefore(l.get(0).getExpirationDate())) {
@@ -235,7 +235,7 @@ public class CreditServiceImpl implements CreditService {
                             }
                         }
                     } else if (loanType.equals("Business")) {
-                        if (c == null) {
+                        if (c.size() == Constants.ZERO || c == null) {
                             return Mono.just(true);
                         } else {
                             if (datetime.isBefore(c.get(0).getExpirationDate())) {
